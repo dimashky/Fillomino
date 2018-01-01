@@ -13,10 +13,38 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\node">
+      <UniqueIdentifier>{1058c94d-00de-4f58-bb59-104821f27bb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\grid">
+      <UniqueIdentifier>{6f0a059e-4282-47f0-935f-604837c64821}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="node\node.cpp">
+      <Filter>Source Files\node</Filter>
+    </ClCompile>
+    <ClCompile Include="grid\grid.cpp">
+      <Filter>Source Files\grid</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="node\node.hpp">
+      <Filter>Source Files\node</Filter>
+    </ClInclude>
+    <ClInclude Include="grid\grid.hpp">
+      <Filter>Source Files\grid</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="fillomino.in">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="fillomino.out">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
