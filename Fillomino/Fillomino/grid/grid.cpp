@@ -62,6 +62,10 @@ int grid::get_size(int i, int j, int value, bool visited[10][10], bool zero)
 		int y = j + dy[k];
 		if (check_indices(x, y) && !visited[x][y] && (board[x][y].value == value || zero && board[x][y].value == 0)) {
 			res += get_size(x, y, value, visited, zero);
+			// here to check only if this cell (which has value 'value') can fill correctly
+			if (zero && res >= value) {
+				return res;
+			}
 		}
 	}
 	return res;
