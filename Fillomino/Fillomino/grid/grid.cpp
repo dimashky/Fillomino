@@ -2,10 +2,10 @@
 #include "grid.hpp"
 #include <stdio.h>
 
-
 grid::grid(int height, int width) {
 	this->width = width;
 	this->height = height;
+	this->node_counter = 0;
 	board = new node*[height];
 	for (int i = 0; i < height; ++i) {
 		board[i] = new node[width];
@@ -72,67 +72,85 @@ int grid::get_size(int i, int j, int value, bool visited[10][10], bool zero)
 }
 
 bool grid::solve(int i, int j) {
-	// visit all cells
+	// if we are out of board so we will go to next line instantly 
+	if (j == width)
+		return solve(i + 1, 0);
+
+	bool visited[10][10];	// helpful matrix for calling 'grid::get_size()' method! 
+
+	// record this node analysis
+	node_counter++;
+
+	// check if we visited all our variables so check it and return!
 	if (i == height) {
 		return all_ok();
 	}
 
-	// go to next line
-	if (j == width)
-		return solve(i + 1, 0);
-	// go to next cell duo to current_size cell has already value
-	if (board[i][j].init_value != 0)
-		return solve(i, j + 1);
-
-	// have chance to get all values for this cell
-	bool visited[10][10];
-	for (int v = 1;v <= 9;v++) {
-		// save 'v' value to current node
-		board[i][j].value = v;
-
-		// check if this value disregard problem constraint
+	// check if this variable has already some value other than zero
+	if (board[i][j].value != 0) {
+		// check if this variable can satisfact the constraints
 		memset(visited, false, sizeof(visited));
-		int current_size = get_size(i, j, v, visited, false);
-		if (current_size > v) {
+		if (get_size(i, j, board[i][j].value, visited, true) < board[i][j].value) {
+			return false;
+		}
+		else {
+			// call next variable
+			return solve(i, j + 1);
+		}
+	}
+
+	/*
+		Now current Variable has ZERO value
+	*/
+	// DECLARE VARIABLES!
+	int x, y;
+	int current_component_size;
+	bool valid;
+	// have chance to get all values for this cell
+	for (int v = 1;v <= 9;v++) {
+		// save the chosen value to current node
+		board[i][j].value = v;
+		/* check if this value disregard problem constraint */
+		memset(visited, false, sizeof(visited));
+		// check if we create component which had size bigger than chosen value 
+		current_component_size = get_size(i, j, v, visited, false);
+		if (current_component_size > v) {
 			board[i][j].value = board[i][j].init_value;
 			continue;
 		}
 		// check if this value have chance to get component size equal it
-		memset(visited, false, sizeof(visited));
-		if (current_size != v) {
-			current_size = get_size(i, j, v, visited, true);
-
-			if (current_size < v) {
+		else if (current_component_size != v)
+		{
+			memset(visited, false, sizeof(visited));
+			if (get_size(i, j, v, visited, true) < v) {
 				board[i][j].value = board[i][j].init_value;
 				continue;
 			}
 		}
 
 		// traverse around this cell to check if this cell did not block any thier neighbour cells 
-		bool valid = true;
+		valid = true;
 		for (int k = 0;k < 4;k++)
 		{
-			int x = i + dx[k];
-			int y = j + dy[k];
+			x = i + dx[k], y = j + dy[k];
 			if (check_indices(x, y) && board[x][y].value != 0 && board[x][y].value != v) {
 				memset(visited, false, sizeof(visited));
-				current_size = get_size(x, y, board[x][y].value, visited, true);
-				if (current_size < board[x][y].value) {
+				if (get_size(x, y, board[x][y].value, visited, true) < board[x][y].value) {
 					valid = false;
 					break;
 				}
 			}
 		}
-
+		// this value 'v' had block other cells so we continue to test another value
 		if (!valid) {
 			board[i][j].value = board[i][j].init_value;
 			continue;
 		}
-
+		// solve next cell
 		if (solve(i, j + 1)) {
 			return true;
 		}
-
+		// backtrack
 		board[i][j].value = board[i][j].init_value;
 	}
 	return false;
@@ -151,3 +169,122 @@ bool grid::all_ok() {
 	}
 	return true;
 }
+
+void grid::reset() {
+	for (int i = 0; i < height; ++i) {
+		for (int j = 0; j < width; ++j) {
+			board[i][j].value = board[i][j].init_value;
+		}
+	}
+}
+
+bool grid::solve_DFS(int i, int j, bool dfs_visited[10][10], int visited_count) {
+
+	node_counter++;			// record this node analysis
+
+	// mark this cell as visited!
+	dfs_visited[i][j] = true;
+	visited_count++;
+
+	bool visited[10][10];	// helpful matrix for calling 'grid::get_size()' method! 
+	int x, y;
+	// check if this variable has already some value other than zero
+	if (board[i][j].value != 0) {
+		// check if this variable can satisfact the constraints
+		memset(visited, false, sizeof(visited));
+		if (get_size(i, j, board[i][j].value, visited, true) < board[i][j].value) {
+			return false;
+		}
+		else {
+			bool ret = true;
+			for (int k = 0; k < 4; ++k) {
+				x = i + dx[k];
+				y = j + dy[k];
+				if (check_indices(x, y) && !dfs_visited[x][y]) {
+					ret &= solve_DFS(x, y, dfs_visited, visited_count);
+					if (ret == false)
+						return false;
+				}
+			}
+			if (ret == true)
+				return true;
+		}
+	}
+
+	/*
+		Now current Variable has ZERO value
+	*/
+	// DECLARE VARIABLES!
+	int current_component_size;
+	bool valid;
+	bool new_dfs_visited[10][10];
+	// have chance to get all values for this cell
+	for (int v = 1; v <= 9; v++) {
+		// copy dfs_visited into new_dfs_visited
+		for (int idx = 0; idx < height; idx++){
+			memcpy(&new_dfs_visited[idx], &dfs_visited[idx], sizeof(dfs_visited[idx]));
+		}
+
+		// save 'v' value to current node
+		board[i][j].value = v;
+
+		// if we are in the last remaining cell
+		if (visited_count == height*width && all_ok()) {
+			return true;
+		}
+
+		// check if this value disregard problem constraint
+		memset(visited, false, sizeof(visited));
+		current_component_size = get_size(i, j, v, visited, false);
+		if (current_component_size > v) {
+			board[i][j].value = board[i][j].init_value;
+			continue;
+		}
+		// check if this value have chance to get component size equal it
+		if (current_component_size != v) {
+			memset(visited, false, sizeof(visited));
+			current_component_size = get_size(i, j, v, visited, true);
+			if (current_component_size < v) {
+				board[i][j].value = board[i][j].init_value;
+				continue;
+			}
+		}
+
+		// traverse around this cell to check if this cell did not block any thier neighbour cells 
+		valid = true;
+		for (int k = 0;k < 4;k++){
+			x = i + dx[k]; y = j + dy[k];
+			if (check_indices(x, y) && board[x][y].value != 0 && board[x][y].value != v) {
+				memset(visited, false, sizeof(visited));
+				if (get_size(x, y, board[x][y].value, visited, true) < board[x][y].value) {
+					valid = false;
+					break;
+				}
+			}
+		}
+		if (valid == false) {
+			board[i][j].value = board[i][j].init_value;
+			continue;
+		}
+
+
+		// else we have to go around 
+		if (visited_count != height * width) {
+			bool ret = true;
+			for (int k = 0; k < 4; ++k) {
+				x = i + dx[k], y = j + dy[k];
+				if (check_indices(x, y) && !dfs_visited[x][y]) {
+					ret &= solve_DFS(x, y, new_dfs_visited, visited_count);
+					if (ret == false)
+						break;
+				}
+			}
+			if (ret == true)
+				return true;
+		}
+
+		board[i][j].value = board[i][j].init_value;
+	}
+	return false;
+}
+

@@ -13,12 +13,15 @@ int main() {
 		cin >> m;
 		grid game(n, m);
 		game.read();
-		//game.print();
 		auto start = std::chrono::system_clock::now();
-		bool res = game.solve(0, 0);
+		bool res;
+		bool visited[10][10];memset(visited, false, sizeof(visited));
+		res = game.solve_DFS(0, 0, visited, 0);
+		//res = game.solve(0, 0);
 		auto end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end - start;
-		cout << "Finish test " << t++ << " in " << elapsed_seconds.count() <<"s.\n";
+
+		cout << "Finish test " << t++ << " in " << elapsed_seconds.count() << "s.\nNode Counter = " << game.node_counter << endl;
 		if (res) {
 			cout << "The solution is:\n";
 			game.print();
