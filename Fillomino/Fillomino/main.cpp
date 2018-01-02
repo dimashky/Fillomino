@@ -6,6 +6,9 @@
 using namespace::std;
 
 int main() {
+	int choice = 0;
+	cout << "Select your choice ( 1 backtrack , 2 DFS, 3 A*): ";
+	cin >> choice;
 	freopen("fillomino.in", "r", stdin);
 	freopen("fillomino.out", "w", stdout);
 	int n, m, t = 1;
@@ -16,8 +19,21 @@ int main() {
 		auto start = std::chrono::system_clock::now();
 		bool res;
 		bool visited[10][10];memset(visited, false, sizeof(visited));
-		res = game.solve_DFS(0, 0, visited, 0);
-		//res = game.solve(0, 0);
+		switch (choice)
+		{
+		case 1:
+			res = game.solve(0, 0);
+			break;
+		case 2:
+			res = game.solve_DFS(0, 0, visited, 0);
+			break;
+		case 3:
+			res = game.solve_DFS_Heuristic(0, 0, visited, 0);
+			break;
+		default:
+			res = game.solve_DFS(0, 0, visited, 0);
+			break;
+		}
 		auto end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end - start;
 

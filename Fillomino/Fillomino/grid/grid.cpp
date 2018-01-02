@@ -223,7 +223,7 @@ bool grid::solve_DFS(int i, int j, bool dfs_visited[10][10], int visited_count) 
 	// have chance to get all values for this cell
 	for (int v = 1; v <= 9; v++) {
 		// copy dfs_visited into new_dfs_visited
-		for (int idx = 0; idx < height; idx++){
+		for (int idx = 0; idx < height; idx++) {
 			memcpy(&new_dfs_visited[idx], &dfs_visited[idx], sizeof(dfs_visited[idx]));
 		}
 
@@ -254,7 +254,7 @@ bool grid::solve_DFS(int i, int j, bool dfs_visited[10][10], int visited_count) 
 
 		// traverse around this cell to check if this cell did not block any thier neighbour cells 
 		valid = true;
-		for (int k = 0;k < 4;k++){
+		for (int k = 0;k < 4;k++) {
 			x = i + dx[k]; y = j + dy[k];
 			if (check_indices(x, y) && board[x][y].value != 0 && board[x][y].value != v) {
 				memset(visited, false, sizeof(visited));
@@ -290,3 +290,176 @@ bool grid::solve_DFS(int i, int j, bool dfs_visited[10][10], int visited_count) 
 	return false;
 }
 
+bool grid::solve_DFS_Heuristic(int i, int j, bool dfs_visited[10][10], int visited_count) {
+
+	node_counter++;			// record this node analysis
+
+							// mark this cell as visited!
+	dfs_visited[i][j] = true;
+	visited_count++;
+
+	bool visited[10][10];	// helpful matrix for calling 'grid::get_size()' method! 
+	int x, y;
+	// check if this variable has already some value other than zero
+	if (board[i][j].value != 0) {
+		// check if this variable can satisfact the constraints
+		memset(visited, false, sizeof(visited));
+		if (get_size(i, j, board[i][j].value, visited, true) < board[i][j].value) {
+			return false;
+		}
+		else {
+			bool ret = true;
+			vector<pair<int, node*>> order;
+			for (int k = 0; k < 4; ++k) {
+				x = i + dx[k];
+				y = j + dy[k];
+				if (check_indices(x, y) && !dfs_visited[x][y]) {
+					order.push_back(pair<int, node*>(degree_heuristic(x, y), &board[x][y]));
+				}
+			}
+			sort(order.begin(), order.end());
+			for (int idx = (int)order.size() - 1; idx >= 0 ; idx--) {
+				ret &= solve_DFS((order[idx].second)->x, (order[idx].second)->y, dfs_visited, visited_count);
+				if (ret == false)
+					return false;
+			}
+			if (ret == true)
+				return true;
+		}
+	}
+
+	/*
+	Now current Variable has ZERO value
+	*/
+	// DECLARE VARIABLES!
+	int current_component_size;
+	bool valid;
+	bool new_dfs_visited[10][10];
+	// have chance to get all values for this cell
+	for (int v = 1; v <= 9; v++) {
+		// copy dfs_visited into new_dfs_visited
+		for (int idx = 0; idx < height; idx++) {
+			memcpy(&new_dfs_visited[idx], &dfs_visited[idx], sizeof(dfs_visited[idx]));
+		}
+
+		// save 'v' value to current node
+		board[i][j].value = v;
+
+		// if we are in the last remaining cell
+		if (visited_count == height*width && all_ok()) {
+			return true;
+		}
+
+		// check if this value disregard problem constraint
+		memset(visited, false, sizeof(visited));
+		current_component_size = get_size(i, j, v, visited, false);
+		if (current_component_size > v) {
+			board[i][j].value = board[i][j].init_value;
+			continue;
+		}
+		// check if this value have chance to get component size equal it
+		if (current_component_size != v) {
+			memset(visited, false, sizeof(visited));
+			current_component_size = get_size(i, j, v, visited, true);
+			if (current_component_size < v) {
+				board[i][j].value = board[i][j].init_value;
+				continue;
+			}
+		}
+
+		// traverse around this cell to check if this cell did not block any thier neighbour cells 
+		valid = true;
+		for (int k = 0;k < 4;k++) {
+			x = i + dx[k]; y = j + dy[k];
+			if (check_indices(x, y) && board[x][y].value != 0 && board[x][y].value != v) {
+				memset(visited, false, sizeof(visited));
+				if (get_size(x, y, board[x][y].value, visited, true) < board[x][y].value) {
+					valid = false;
+					break;
+				}
+			}
+		}
+		if (valid == false) {
+			board[i][j].value = board[i][j].init_value;
+			continue;
+		}
+
+
+		// else we have to go around 
+		if (visited_count != height * width) {
+			bool ret = true;
+			vector<pair<int, node*>> order;
+			for (int k = 0; k < 4; ++k) {
+				x = i + dx[k], y = j + dy[k];
+				if (check_indices(x, y) && !dfs_visited[x][y]) {
+					order.push_back(pair<int, node*>(degree_heuristic(x,y),&board[x][y]));
+				}
+			}
+			sort(order.begin(), order.end());
+			for (int idx = (int)order.size(); idx >= 0; --idx) {
+				ret &= solve_DFS((order[i].second)->x, (order[i].second)->y, new_dfs_visited, visited_count);
+				if (ret == false)
+					break;
+			}
+			if (ret == true)
+				return true;
+		}
+
+		board[i][j].value = board[i][j].init_value;
+	}
+	return false;
+}
+
+int grid::degree_heuristic(int i, int j) {
+	int neighbours_cnt = 0;
+	for (int k = 0; k < 4; ++k)
+		if (check_indices(i + dx[k], j + dy[k]) && board[i + dx[k]][j + dy[k]].value != 0)
+			neighbours_cnt += 1;
+	return neighbours_cnt;
+}
+
+int grid::MRV_heuristic(int i, int j) {
+	int cnt = 0;
+	for (int v = 1; v <= 9; v++) {
+		// save 'v' value to current node
+		board[i][j].value = v;
+
+		bool visited[10][10];
+		// check if this value disregard problem constraint
+		memset(visited, false, sizeof(visited));
+		int current_component_size = get_size(i, j, v, visited, false);
+		if (current_component_size > v) {
+			board[i][j].value = board[i][j].init_value;
+			continue;
+		}
+		// check if this value have chance to get component size equal it
+		if (current_component_size != v) {
+			memset(visited, false, sizeof(visited));
+			current_component_size = get_size(i, j, v, visited, true);
+			if (current_component_size < v) {
+				board[i][j].value = board[i][j].init_value;
+				continue;
+			}
+		}
+
+		// traverse around this cell to check if this cell did not block any thier neighbour cells 
+		bool valid = true;
+		for (int k = 0;k < 4;k++) {
+			int x = i + dx[k], y = j + dy[k];
+			if (check_indices(x, y) && board[x][y].value != 0 && board[x][y].value != v) {
+				memset(visited, false, sizeof(visited));
+				if (get_size(x, y, board[x][y].value, visited, true) < board[x][y].value) {
+					valid = false;
+					break;
+				}
+			}
+		}
+		if (valid == false) {
+			board[i][j].value = board[i][j].init_value;
+			continue;
+		}
+		cnt++;
+		board[i][j].value = board[i][j].init_value;
+	}
+	return -1 * cnt;
+}

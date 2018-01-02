@@ -22,8 +22,11 @@ public:
 	int get_size(int i, int j, int value, bool visited[10][10], bool zero);
 	bool solve(int i, int j);
 	bool solve_DFS(int i, int j,bool dfs_visisted[10][10], int visited_count);
+	bool solve_DFS_Heuristic(int i, int j, bool dfs_visisted[10][10], int visited_count);
 	bool all_ok();
 	void reset();
+	int degree_heuristic(int i, int j);
+	int MRV_heuristic(int i, int j);
 };
 
 #endif
