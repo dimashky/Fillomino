@@ -6,8 +6,10 @@ public:
 	int init_value;
 	int value;
 	bool visited;
-
-	node(int = 0);
+	int x;
+	int y;
+	node();
+	node(int x, int y, int value);
 };
 
 

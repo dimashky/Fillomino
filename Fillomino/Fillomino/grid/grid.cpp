@@ -16,6 +16,8 @@ void grid::read() {
 	for (int i = 0; i < height; ++i) {
 		for (int j = 0; j < width; ++j) {
 			cin >> board[i][j].init_value;
+			board[i][j].x = i;
+			board[i][j].y = j;
 			board[i][j].value = board[i][j].init_value;
 		}
 	}
