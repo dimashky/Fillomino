@@ -9,6 +9,11 @@ int main() {
 	int choice = 0;
 	cout << "Select your choice:\n1- backtrack\n2- DFS\n3- DFS & heuristic\n4- BFS\n5- BFS & heuristic\n";
 	cin >> choice;
+	bool MRV, degree;
+	if (choice == 3 || choice == 5) {
+		MRV = true;
+		degree = false;
+	}
 	freopen("fillomino.in", "r", stdin);
 	freopen("fillomino.out", "w", stdout);
 	int n, m, t = 1;
@@ -28,8 +33,12 @@ int main() {
 			res = game.solve_DFS(0, 0, visited, 0);
 			break;
 		case 3:
+		{
+			game.MRV = MRV;
+			game.degree = degree;
 			res = game.solve_DFS_Heuristic(0, 0, visited, 0);
 			break;
+		}
 		case 4:
 		{
 			queue<node>q;
@@ -41,6 +50,8 @@ int main() {
 		{
 			queue<node>q;
 			q.push(game.board[0][0]);
+			game.MRV = MRV;
+			game.degree = degree;
 			res = game.solve_BFS_Heuristic(q, visited);
 			break;
 		}

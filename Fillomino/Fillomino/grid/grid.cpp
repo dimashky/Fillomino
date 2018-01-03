@@ -671,7 +671,8 @@ bool grid::solve_DFS_Heuristic(int i, int j, bool dfs_visited[10][10], int visit
 }
 
 int grid::degree_heuristic(int i, int j) {
-	return 0;
+	if (!degree)
+		return 0;
 	int neighbours_cnt = 0;
 	for (int k = 0; k < 4; ++k)
 		if (check_indices(i + dx[k], j + dy[k]) && board[i + dx[k]][j + dy[k]].value != 0)
@@ -680,7 +681,8 @@ int grid::degree_heuristic(int i, int j) {
 }
 
 int grid::MRV_heuristic(int i, int j) {
-	return 0;
+	if (!MRV)
+		return 0;
 	if (board[i][j].value != 0)
 		return 0;
 	int cnt = 0;
