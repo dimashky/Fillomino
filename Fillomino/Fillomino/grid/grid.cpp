@@ -730,6 +730,8 @@ int grid::degree_heuristic(int i, int j) {
 }
 
 int grid::MRV_heuristic(int i, int j) {
+	if (board[i][j].value != 0)
+		return 0;
 	int cnt = 0;
 	for (int v = 1; v <= 9; v++) {
 		// save 'v' value to current node
@@ -773,4 +775,16 @@ int grid::MRV_heuristic(int i, int j) {
 		board[i][j].value = board[i][j].init_value;
 	}
 	return -1 * cnt;
+}
+
+bool grid::change(int i, int j, int value) {
+	if (check_indices(i, j)) {
+		board[i][j].value = value;
+		bool visited[10][10]; memset(visited, false, sizeof(visited));
+		if (get_size(i, j, value, visited, false) <= value)
+			return true;
+		board[i][j].value = board[i][j].init_value;
+		return false;
+	}
+	return false;
 }

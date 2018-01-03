@@ -29,6 +29,7 @@ public:
 	void reset();
 	int degree_heuristic(int i, int j);
 	int MRV_heuristic(int i, int j);
+	bool change(int i, int j, int value);
 };
 
 #endif
