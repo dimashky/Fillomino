@@ -7,7 +7,7 @@ using namespace::std;
 
 int main() {
 	int choice = 0;
-	cout << "Select your choice ( 1 backtrack , 2 DFS, 3 A*): ";
+	cout << "Select your choice ( 1 backtrack , 2 DFS, 3 BFS, 4 A*): ";
 	cin >> choice;
 	freopen("fillomino.in", "r", stdin);
 	freopen("fillomino.out", "w", stdout);
@@ -28,6 +28,13 @@ int main() {
 			res = game.solve_DFS(0, 0, visited, 0);
 			break;
 		case 3:
+		{
+			queue<node>q;
+			q.push(game.board[0][0]);
+			res = game.solve_BFS(q, visited, 0);
+			break;
+		}
+		case 4:
 			res = game.solve_DFS_Heuristic(0, 0, visited, 0);
 			break;
 		default:

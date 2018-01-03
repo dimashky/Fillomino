@@ -158,6 +158,147 @@ bool grid::solve(int i, int j) {
 	return false;
 }
 
+
+
+
+
+
+
+
+bool grid::solve_BFS(queue<node>q, bool bfs_visisted[10][10], int visited_count)
+{
+	node_counter++;
+
+	node fr = q.front();
+	q.pop();
+
+	bfs_visisted[fr.x][fr.y] = true;
+
+	if (board[fr.x][fr.y].value != 0)
+	{
+
+		bool visited[10][10];
+
+		memset(visited, false, sizeof(visited));
+
+		if (get_size(fr.x, fr.y, fr.value, visited, true) < fr.value)
+			return false;
+		
+		else 
+		
+			for (int k = 0; k < 4; ++k) 
+			{
+				int x = fr.x + dx[k];
+				int y = fr.y + dy[k];
+				if (check_indices(x, y) && !bfs_visisted[x][y]) 
+				{
+					bfs_visisted[x][y] = true;
+					q.push(board[x][y]);
+				}
+			}
+
+
+		if (!q.empty())
+			return solve_BFS(q, bfs_visisted, visited_count);
+		
+		return all_ok();
+		
+	}
+
+
+
+	int current_component_size;
+	bool valid;
+	bool new_bfs_visited[10][10], visited[10][10];
+
+
+	for (int v = 1; v <= 9; v++) 
+	{
+
+		for (int idx = 0; idx < height; idx++) {
+			memcpy(&new_bfs_visited[idx], &bfs_visisted[idx], sizeof(bfs_visisted[idx]));
+		}
+
+		board[fr.x][fr.y].value = v;
+
+		memset(visited, false, sizeof(visited));
+
+		current_component_size = get_size(fr.x, fr.y, v, visited, false);
+		
+		if (current_component_size > v) {
+			board[fr.x][fr.y].value = 0;
+			continue;
+		}
+		
+		if (current_component_size != v) 
+		{
+			memset(visited, false, sizeof(visited));
+			current_component_size = get_size(fr.x, fr.y, v, visited, true);
+			if (current_component_size < v) 
+			{
+				board[fr.x][fr.y].value = 0;
+				continue;
+			}
+		}
+
+		valid = true;
+		for (int k = 0;k < 4;k++) 
+		{
+			int x = fr.x + dx[k];
+			int y = fr.y + dy[k];
+
+			if (check_indices(x, y) && board[x][y].value != 0 && board[x][y].value != v) 
+			{
+				memset(visited, false, sizeof(visited));
+				if (get_size(x, y, board[x][y].value, visited, true) < board[x][y].value) 
+				{
+					valid = false;
+					break;
+				}
+			}
+		}
+
+		if (valid == false) 
+		{
+			board[fr.x][fr.y].value = 0;
+			continue;
+		}
+
+
+		
+		for (int k = 0; k < 4; ++k) 
+		{
+			int x = fr.x + dx[k];
+			int y = fr.y + dy[k];
+				
+			if (check_indices(x, y) && !new_bfs_visited[x][y])
+			{
+				new_bfs_visited[x][y] = true;
+				q.push(board[x][y]);
+			}
+		}
+
+
+
+		if (!q.empty())
+		{
+			if (solve_BFS(q, new_bfs_visited, visited_count))
+				return true;
+		}
+		else return all_ok();
+		
+
+		board[fr.x][fr.y].value = board[fr.x][fr.y].init_value;
+	}
+	return false;
+
+
+
+}
+
+
+
+
 bool grid::all_ok() {
 	bool visited[10][10];
 	memset(visited, false, sizeof(visited));
