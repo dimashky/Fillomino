@@ -121,7 +121,7 @@ bool grid::solve(int i, int j) {
 			continue;
 		}
 		// check if this value have chance to get component size equal it
-		else if (current_component_size != v)
+		if (current_component_size != v)
 		{
 			memset(visited, false, sizeof(visited));
 			if (get_size(i, j, v, visited, true) < v) {
@@ -333,6 +333,12 @@ bool grid::solve_DFS(int i, int j, bool dfs_visited[10][10], int visited_count) 
 	int x, y;
 	// check if this variable has already some value other than zero
 	if (board[i][j].value != 0) {
+		// if we are in the last remaining cell
+		if (visited_count == height*width) {
+			if(all_ok())
+				return true;
+			return false;
+		}
 		// check if this variable can satisfact the constraints
 		memset(visited, false, sizeof(visited));
 		if (get_size(i, j, board[i][j].value, visited, true) < board[i][j].value) {
@@ -443,6 +449,12 @@ bool grid::solve_DFS_Heuristic(int i, int j, bool dfs_visited[10][10], int visit
 	int x, y;
 	// check if this variable has already some value other than zero
 	if (board[i][j].value != 0) {
+		// if we are in the last remaining cell
+		if (visited_count == height*width) {
+			if (all_ok())
+				return true;
+			return false;
+		}
 		// check if this variable can satisfact the constraints
 		memset(visited, false, sizeof(visited));
 		if (get_size(i, j, board[i][j].value, visited, true) < board[i][j].value) {
@@ -455,7 +467,7 @@ bool grid::solve_DFS_Heuristic(int i, int j, bool dfs_visited[10][10], int visit
 				x = i + dx[k];
 				y = j + dy[k];
 				if (check_indices(x, y) && !dfs_visited[x][y]) {
-					order.push_back(pair<int, node*>(degree_heuristic(x, y), &board[x][y]));
+					order.push_back(pair<int, node*>(degree_heuristic(x, y)+MRV_heuristic(x,y), &board[x][y]));
 				}
 			}
 			sort(order.begin(), order.end());
@@ -533,7 +545,7 @@ bool grid::solve_DFS_Heuristic(int i, int j, bool dfs_visited[10][10], int visit
 			for (int k = 0; k < 4; ++k) {
 				x = i + dx[k], y = j + dy[k];
 				if (check_indices(x, y) && !dfs_visited[x][y]) {
-					order.push_back(pair<int, node*>(degree_heuristic(x,y),&board[x][y]));
+					order.push_back(pair<int, node*>(degree_heuristic(x,y)+ MRV_heuristic(x, y),&board[x][y]));
 				}
 			}
 			sort(order.begin(), order.end());
@@ -556,7 +568,7 @@ int grid::degree_heuristic(int i, int j) {
 	for (int k = 0; k < 4; ++k)
 		if (check_indices(i + dx[k], j + dy[k]) && board[i + dx[k]][j + dy[k]].value != 0)
 			neighbours_cnt += 1;
-	return neighbours_cnt;
+	return neighbours_cnt * 10;
 }
 
 int grid::MRV_heuristic(int i, int j) {
