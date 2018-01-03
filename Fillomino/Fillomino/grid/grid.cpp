@@ -74,6 +74,11 @@ int grid::get_size(int i, int j, int value, bool visited[10][10], bool zero)
 }
 
 bool grid::solve(int i, int j) {
+	// check if we visited all our variables so check it and return!
+	if (i == height) {
+		return all_ok();
+	}
+
 	// if we are out of board so we will go to next line instantly 
 	if (j == width)
 		return solve(i + 1, 0);
@@ -83,10 +88,7 @@ bool grid::solve(int i, int j) {
 	// record this node analysis
 	node_counter++;
 
-	// check if we visited all our variables so check it and return!
-	if (i == height) {
-		return all_ok();
-	}
+
 
 	// check if this variable has already some value other than zero
 	if (board[i][j].value != 0) {
@@ -158,14 +160,7 @@ bool grid::solve(int i, int j) {
 	return false;
 }
 
-
-
-
-
-
-
-
-bool grid::solve_BFS(queue<node>q, bool bfs_visisted[10][10], int visited_count)
+bool grid::solve_BFS(queue<node>q, bool bfs_visisted[10][10])
 {
 	node_counter++;
 
@@ -174,48 +169,33 @@ bool grid::solve_BFS(queue<node>q, bool bfs_visisted[10][10], int visited_count)
 
 	bfs_visisted[fr.x][fr.y] = true;
 
-	if (board[fr.x][fr.y].value != 0)
-	{
+	if (board[fr.x][fr.y].value != 0) {
+		bool visited[10][10];		memset(visited, false, sizeof(visited));
 
-		bool visited[10][10];
-
-		memset(visited, false, sizeof(visited));
-
-		if (get_size(fr.x, fr.y, fr.value, visited, true) < fr.value)
+		if (get_size(fr.x, fr.y, fr.value, visited, true) < fr.value) {
 			return false;
-		
-		else 
-		
-			for (int k = 0; k < 4; ++k) 
-			{
-				int x = fr.x + dx[k];
-				int y = fr.y + dy[k];
-				if (check_indices(x, y) && !bfs_visisted[x][y]) 
-				{
+		}
+		else {
+			for (int k = 0; k < 4; ++k) {
+				int x = fr.x + dx[k], y = fr.y + dy[k];
+				if (check_indices(x, y) && !bfs_visisted[x][y]) {
 					bfs_visisted[x][y] = true;
 					q.push(board[x][y]);
 				}
 			}
-
+		}
 
 		if (!q.empty())
-			return solve_BFS(q, bfs_visisted, visited_count);
-		
+			return solve_BFS(q, bfs_visisted);
+
 		return all_ok();
-		
 	}
-
-
 
 	int current_component_size;
 	bool valid, push = false;
 	bool new_bfs_visited[10][10], visited[10][10];
 
-
-
-	for (int v = 1; v <= 9; v++) 
-	{
-
+	for (int v = 1; v <= 9; v++) {
 		for (int idx = 0; idx < height; idx++) {
 			memcpy(&new_bfs_visited[idx], &bfs_visisted[idx], sizeof(bfs_visisted[idx]));
 		}
@@ -223,57 +203,44 @@ bool grid::solve_BFS(queue<node>q, bool bfs_visisted[10][10], int visited_count)
 		board[fr.x][fr.y].value = v;
 
 		memset(visited, false, sizeof(visited));
-
 		current_component_size = get_size(fr.x, fr.y, v, visited, false);
-		
+
 		if (current_component_size > v) {
 			board[fr.x][fr.y].value = 0;
 			continue;
 		}
-		
-		if (current_component_size != v) 
-		{
+
+		if (current_component_size != v) {
 			memset(visited, false, sizeof(visited));
 			current_component_size = get_size(fr.x, fr.y, v, visited, true);
-			if (current_component_size < v) 
-			{
+			if (current_component_size < v) {
 				board[fr.x][fr.y].value = 0;
 				continue;
 			}
 		}
 
 		valid = true;
-		for (int k = 0;k < 4;k++) 
-		{
-			int x = fr.x + dx[k];
-			int y = fr.y + dy[k];
-
-			if (check_indices(x, y) && board[x][y].value != 0 && board[x][y].value != v) 
-			{
+		for (int k = 0;k < 4;k++) {
+			int x = fr.x + dx[k], y = fr.y + dy[k];
+			if (check_indices(x, y) && board[x][y].value != 0 && board[x][y].value != v) {
 				memset(visited, false, sizeof(visited));
-				if (get_size(x, y, board[x][y].value, visited, true) < board[x][y].value) 
-				{
+				if (get_size(x, y, board[x][y].value, visited, true) < board[x][y].value) {
 					valid = false;
 					break;
 				}
 			}
 		}
 
-		if (valid == false) 
-		{
+		if (valid == false) {
 			board[fr.x][fr.y].value = 0;
 			continue;
 		}
 
-
-
-		for (int k = 0; k < 4; ++k)
-		{
+		for (int k = 0; k < 4; ++k) {
 			int x = fr.x + dx[k];
 			int y = fr.y + dy[k];
 
-			if (check_indices(x, y) && !new_bfs_visited[x][y])
-			{
+			if (check_indices(x, y) && !new_bfs_visited[x][y]) {
 				new_bfs_visited[x][y] = true;
 
 				if (!push)
@@ -282,41 +249,30 @@ bool grid::solve_BFS(queue<node>q, bool bfs_visisted[10][10], int visited_count)
 		}
 
 		push = true;
-		
-
-
-		if (!q.empty())
-		{
-			if (solve_BFS(q, new_bfs_visited, visited_count))
+		if (!q.empty()) {
+			if (solve_BFS(q, new_bfs_visited))
 				return true;
 		}
 		else return all_ok();
-		
 
 		board[fr.x][fr.y].value = board[fr.x][fr.y].init_value;
 	}
 	return false;
 }
 
-
-
-bool grid::solve_BFS_Heuristic(queue<node>q, bool bfs_visisted[10][10], int visited_count)
+bool grid::solve_BFS_Heuristic(queue<node>q, bool bfs_visisted[10][10])
 {
-
 	node_counter++;
 
 	node fr = q.front();
 	q.pop();
-	
+
 	set<pair<int, pair<int, int > > >childs;
 
 	bfs_visisted[fr.x][fr.y] = true;
 
-	if (board[fr.x][fr.y].value != 0)
-	{
-
+	if (board[fr.x][fr.y].value != 0){
 		bool visited[10][10];
-
 		memset(visited, false, sizeof(visited));
 
 		if (get_size(fr.x, fr.y, fr.value, visited, true) < fr.value)
@@ -334,7 +290,7 @@ bool grid::solve_BFS_Heuristic(queue<node>q, bool bfs_visisted[10][10], int visi
 					childs.insert(make_pair(degree_heuristic(x, y) + MRV_heuristic(x, y), make_pair(x, y)));
 				}
 			}
-		
+
 		if (childs.size())
 		{
 			set<pair<int, pair<int, int> > >::iterator it = --childs.end();
@@ -348,7 +304,7 @@ bool grid::solve_BFS_Heuristic(queue<node>q, bool bfs_visisted[10][10], int visi
 		}
 
 		if (!q.empty())
-			return solve_BFS(q, bfs_visisted, visited_count);
+			return solve_BFS(q, bfs_visisted);
 
 		return all_ok();
 
@@ -427,12 +383,11 @@ bool grid::solve_BFS_Heuristic(queue<node>q, bool bfs_visisted[10][10], int visi
 			}
 		}
 
-		if (childs.size() && !push) 
+		if (childs.size() && !push)
 		{
 			set<pair<int, pair<int, int> > >::iterator it = --childs.end();
 
-			for (;;it--)
-			{
+			for (;;it--){
 				q.push(board[it->second.first][it->second.second]);
 				if (it == childs.begin())
 					break;
@@ -440,22 +395,16 @@ bool grid::solve_BFS_Heuristic(queue<node>q, bool bfs_visisted[10][10], int visi
 		}
 
 		push = true;
-
-
-		if (!q.empty())
-		{
-			if (solve_BFS(q, new_bfs_visited, visited_count))
+		if (!q.empty()) {
+			if (solve_BFS(q, new_bfs_visited))
 				return true;
 		}
 		else return all_ok();
-
 
 		board[fr.x][fr.y].value = board[fr.x][fr.y].init_value;
 	}
 	return false;
 }
-
-
 
 bool grid::all_ok() {
 	bool visited[10][10];
@@ -493,7 +442,7 @@ bool grid::solve_DFS(int i, int j, bool dfs_visited[10][10], int visited_count) 
 	if (board[i][j].value != 0) {
 		// if we are in the last remaining cell
 		if (visited_count == height*width) {
-			if(all_ok())
+			if (all_ok())
 				return true;
 			return false;
 		}
@@ -625,11 +574,11 @@ bool grid::solve_DFS_Heuristic(int i, int j, bool dfs_visited[10][10], int visit
 				x = i + dx[k];
 				y = j + dy[k];
 				if (check_indices(x, y) && !dfs_visited[x][y]) {
-					order.push_back(pair<int, node*>(degree_heuristic(x, y)+MRV_heuristic(x,y), &board[x][y]));
+					order.push_back(pair<int, node*>(degree_heuristic(x, y) + MRV_heuristic(x, y), &board[x][y]));
 				}
 			}
 			sort(order.begin(), order.end());
-			for (int idx = (int)order.size() - 1; idx >= 0 ; idx--) {
+			for (int idx = (int)order.size() - 1; idx >= 0; idx--) {
 				ret &= solve_DFS((order[idx].second)->x, (order[idx].second)->y, dfs_visited, visited_count);
 				if (ret == false)
 					return false;
@@ -703,7 +652,7 @@ bool grid::solve_DFS_Heuristic(int i, int j, bool dfs_visited[10][10], int visit
 			for (int k = 0; k < 4; ++k) {
 				x = i + dx[k], y = j + dy[k];
 				if (check_indices(x, y) && !dfs_visited[x][y]) {
-					order.push_back(pair<int, node*>(degree_heuristic(x,y)+ MRV_heuristic(x, y),&board[x][y]));
+					order.push_back(pair<int, node*>(degree_heuristic(x, y) + MRV_heuristic(x, y), &board[x][y]));
 				}
 			}
 			sort(order.begin(), order.end());
@@ -722,6 +671,7 @@ bool grid::solve_DFS_Heuristic(int i, int j, bool dfs_visited[10][10], int visit
 }
 
 int grid::degree_heuristic(int i, int j) {
+	return 0;
 	int neighbours_cnt = 0;
 	for (int k = 0; k < 4; ++k)
 		if (check_indices(i + dx[k], j + dy[k]) && board[i + dx[k]][j + dy[k]].value != 0)
@@ -730,6 +680,7 @@ int grid::degree_heuristic(int i, int j) {
 }
 
 int grid::MRV_heuristic(int i, int j) {
+	return 0;
 	if (board[i][j].value != 0)
 		return 0;
 	int cnt = 0;

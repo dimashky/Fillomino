@@ -7,12 +7,12 @@ using namespace::std;
 
 int main() {
 	int choice = 0;
-	cout << "Select your choice ( 1 backtrack , 2 DFS, 3 BFS, 4 A*): ";
+	cout << "Select your choice:\n1- backtrack\n2- DFS\n3- DFS & heuristic\n4- BFS\n5- BFS & heuristic\n";
 	cin >> choice;
 	freopen("fillomino.in", "r", stdin);
 	freopen("fillomino.out", "w", stdout);
 	int n, m, t = 1;
-	while (cin>>n) {
+	while (cin >> n) {
 		cin >> m;
 		grid game(n, m);
 		game.read();
@@ -28,15 +28,22 @@ int main() {
 			res = game.solve_DFS(0, 0, visited, 0);
 			break;
 		case 3:
+			res = game.solve_DFS_Heuristic(0, 0, visited, 0);
+			break;
+		case 4:
 		{
 			queue<node>q;
 			q.push(game.board[0][0]);
-			res = game.solve_BFS(q, visited, 0);
+			res = game.solve_BFS(q, visited);
 			break;
 		}
-		case 4:
-			res = game.solve_DFS_Heuristic(0, 0, visited, 0);
+		case 5:
+		{
+			queue<node>q;
+			q.push(game.board[0][0]);
+			res = game.solve_BFS_Heuristic(q, visited);
 			break;
+		}
 		default:
 			res = game.solve_DFS(0, 0, visited, 0);
 			break;
